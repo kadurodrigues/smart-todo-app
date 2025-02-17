@@ -4,7 +4,6 @@ import { Input } from "@/components/ui/input"
 import { Loader2, WandSparklesIcon } from "lucide-react"
 
 const TaskForm = () => {
-  
   const {
     task,
     tasks,
@@ -39,7 +38,7 @@ const TaskForm = () => {
                 onClick={generateTaskByAI}
               >
                 {isAILoading ? <Loader2 className="animate-spin" /> : <WandSparklesIcon />}
-                AI Generate
+                Generate by AI
               </Button>}
             </div>
           : <div className='flex space-x-2'>
@@ -47,7 +46,7 @@ const TaskForm = () => {
                 className='cursor-pointer'
                 onClick={() => saveEdit()}
               >
-                Save Change
+                Save Changes
               </Button>
               <Button
                 className='cursor-pointer'

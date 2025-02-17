@@ -18,7 +18,7 @@ const openai = new OpenAI({
 
 export const getAiTaskSuggestions = async (previousTasks: any) => {
   try {
-    const { choices  }= await openai.chat.completions.create({
+    const { choices } = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [
         { role: 'user', content: `Suggest a new task based on these previous tasks: ${previousTasks}` }

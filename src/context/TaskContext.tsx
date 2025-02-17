@@ -10,12 +10,16 @@ interface TaskContextType {
   task: string;
   tasks: Task[];
   editingIndex: number | null;
+  draggedIndex: number | null;
   isAILoading: boolean;
   addTask: () => void;
   setTask: (value: string) => void;
   removeTask: (id: string) => void;
   editTask: (index: number) => void;
   cancelEdit: () => void;
+  handleDragTaskStart: (index: number) => void;
+  handleDragTaskOver: ($event: React.DragEvent, index: number) => void;
+  handleDragTaskEnd: () => void;
   saveEdit: () => void;
   generateTaskByAI: () => void;
 } 
@@ -24,6 +28,7 @@ const TaskContext = createContext<TaskContextType>({
   task: '',
   tasks: [],
   editingIndex: null,
+  draggedIndex: null,
   isAILoading: false,
   addTask: () => {},
   setTask: () => {},
@@ -31,6 +36,9 @@ const TaskContext = createContext<TaskContextType>({
   saveEdit: () => {},
   cancelEdit: () => {},
   removeTask: () => {},
+  handleDragTaskStart: () => {},
+  handleDragTaskOver: () => {},
+  handleDragTaskEnd: () => {},
   generateTaskByAI: () => {}
 } as TaskContextType );
 
@@ -42,6 +50,7 @@ export const TaskProvider: React.FC<TaskProviderProps> = ({ children }) => {
   const [task, setTask] = useState('')
   const [tasks, setTasks] = useState<Task[]>([])
   const [editingIndex, setEditingIndex] = useState<number | null>(null)
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
   const [isAILoading, setIsAILoading] = useState(false)
 
   const addTask = () => {
@@ -84,6 +93,29 @@ export const TaskProvider: React.FC<TaskProviderProps> = ({ children }) => {
     setEditingIndex(null)
   }
 
+  const handleDragTaskStart = (index: number) => {
+    setDraggedIndex(index);
+  }
+
+  const handleDragTaskOver = ($event: React.DragEvent, index: number) => {
+    $event.preventDefault();
+
+    if (draggedIndex === null) return;
+
+    if (draggedIndex !== index) {
+      const newTasks = [...tasks];
+      const draggedTask = newTasks[draggedIndex];
+      newTasks.splice(draggedIndex, 1);
+      newTasks.splice(index, 0, draggedTask);
+      setTasks(newTasks);
+      setDraggedIndex(index);
+    }
+  }
+
+  const handleDragTaskEnd = () => {
+    setDraggedIndex(null)
+  }
+
   const generateTaskByAI = async () => {
     try {
       setIsAILoading(true)
@@ -107,6 +139,7 @@ export const TaskProvider: React.FC<TaskProviderProps> = ({ children }) => {
     task,
     tasks,
     editingIndex,
+    draggedIndex,
     isAILoading,
     addTask,
     setTask,
@@ -114,6 +147,9 @@ export const TaskProvider: React.FC<TaskProviderProps> = ({ children }) => {
     editTask,
     cancelEdit,
     saveEdit,
+    handleDragTaskStart,
+    handleDragTaskOver,
+    handleDragTaskEnd,
     generateTaskByAI
   }
 
