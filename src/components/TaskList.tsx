@@ -9,7 +9,11 @@ import {
 
 import {
   GripVerticalIcon,
-  SettingsIcon
+  SettingsIcon,
+  CheckIcon,
+  EditIcon,
+  TrashIcon,
+  Undo2Icon
 } from "lucide-react"
 
 const TaskList = () => {
@@ -18,6 +22,7 @@ const TaskList = () => {
     draggedIndex,
     removeTask,
     editTask,
+    completeTask,
     handleDragTaskStart,
     handleDragTaskOver,
     handleDragTaskEnd
@@ -28,18 +33,20 @@ const TaskList = () => {
       {tasks.map((task, index) => (
         <li key={task.id}>
           <div
-            className={`rounded-md bg-white shadow-lg shadow-slate-200 p-8 transition-transform ${draggedIndex === index ? 'opacity-50' : ''}`}
+            className={`rounded-md shadow-lg shadow-slate-200 p-8 transition-transform ${draggedIndex === index ? 'opacity-50' : ''} ${task.completed ? 'bg-slate-50' : 'bg-white'}`}
             draggable="true"
             onDragStart={() => handleDragTaskStart(index)}
             onDragOver={(e) => handleDragTaskOver(e, index)}
             onDragEnd={handleDragTaskEnd}
           >
             <div className='flex items-center space-x-5'>
-              <GripVerticalIcon className='text-slate-400 cursor-grab' />
+              <GripVerticalIcon className='text-slate-400 cursor-grab shrink-0' />
               <div className='flex flex-grow justify-between'>
                 <div>
-                  <p>{task.text}</p>
-                  <span className='text-sm text-slate-500'>{task.id}</span>
+                  <p className={`${task.completed ? 'line-through' : ''}`}>
+                    {task.text}
+                  </p>
+                  <span className={`text-sm text-slate-500 ${task.completed ? 'line-through' : ''}`}>{task.id}</span>
                 </div>
                 <DropdownMenu>
                   <DropdownMenuTrigger>
@@ -48,16 +55,25 @@ const TaskList = () => {
                     </div>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent>
+                  <DropdownMenuLabel
+                      className='flex items-center gap-x-1 rounded hover:bg-slate-100 cursor-pointer'
+                      onClick={() => completeTask(index)}
+                    >
+                      { task.completed ? <Undo2Icon className='h-4' /> : <CheckIcon className='h-4' /> }
+                      { task.completed ? 'Undone' : 'Done' }
+                    </DropdownMenuLabel>
                     <DropdownMenuLabel
-                      className='rounded hover:bg-slate-100 cursor-pointer'
+                      className='flex items-center gap-x-1 rounded hover:bg-slate-100 cursor-pointer'
                       onClick={() => editTask(index)}
                     >
+                      <EditIcon className='h-4' />
                       Edit
                     </DropdownMenuLabel>
                     <DropdownMenuLabel
-                      className='rounded hover:text-red-700 hover:bg-red-100 cursor-pointer'
+                      className='flex items-center gap-x-1 rounded hover:text-red-700 hover:bg-red-100 cursor-pointer'
                       onClick={() => removeTask(task.id)}
                     >
+                      <TrashIcon className='h-4' />
                       Delete
                     </DropdownMenuLabel>
                   </DropdownMenuContent>

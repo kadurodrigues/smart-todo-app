@@ -4,6 +4,7 @@ import { getAiTaskSuggestions } from '@/services/aiService'
 interface Task {
   id: string;
   text: string;
+  completed: boolean;
 }
 
 interface TaskContextType {
@@ -11,15 +12,19 @@ interface TaskContextType {
   tasks: Task[];
   editingIndex: number | null;
   draggedIndex: number | null;
+  aiSuggestion: string | null;
   isAILoading: boolean;
+  isAISuggestionDialogOpen: boolean;
   addTask: () => void;
   setTask: (value: string) => void;
   removeTask: (id: string) => void;
   editTask: (index: number) => void;
+  completeTask: (index: number) => void;
   cancelEdit: () => void;
   handleDragTaskStart: (index: number) => void;
   handleDragTaskOver: ($event: React.DragEvent, index: number) => void;
   handleDragTaskEnd: () => void;
+  handleCreateTaskSuggestedByAI: () => void;
   saveEdit: () => void;
   generateTaskByAI: () => void;
 } 
@@ -30,16 +35,20 @@ const TaskContext = createContext<TaskContextType>({
   editingIndex: null,
   draggedIndex: null,
   isAILoading: false,
+  aiSuggestion: '',
+  isAISuggestionDialogOpen: false,
   addTask: () => {},
   setTask: () => {},
   editTask: () => {},
+  completeTask: () => {},
   saveEdit: () => {},
   cancelEdit: () => {},
   removeTask: () => {},
   handleDragTaskStart: () => {},
   handleDragTaskOver: () => {},
   handleDragTaskEnd: () => {},
-  generateTaskByAI: () => {}
+  generateTaskByAI: () => {},
+  handleCreateTaskSuggestedByAI: () => {},
 } as TaskContextType );
 
 interface TaskProviderProps {
@@ -49,15 +58,18 @@ interface TaskProviderProps {
 export const TaskProvider: React.FC<TaskProviderProps> = ({ children }) => {
   const [task, setTask] = useState('')
   const [tasks, setTasks] = useState<Task[]>([])
+  const [aiSuggestion, setAISuggestion] = useState<string | null>('')
   const [editingIndex, setEditingIndex] = useState<number | null>(null)
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
   const [isAILoading, setIsAILoading] = useState(false)
+  const [isAISuggestionDialogOpen, setIsAISuggestionDialogOpen] = useState(false)
 
   const addTask = () => {
     if (task.trim()) {
       const newTask = {
         id: new Date().toLocaleString(),
-        text: task
+        text: task,
+        completed: false
       }
       setTasks([...tasks, newTask])
       setTask('')
@@ -79,13 +91,21 @@ export const TaskProvider: React.FC<TaskProviderProps> = ({ children }) => {
       if (editingIndex !== null) {
         newTasks[editingIndex] = {
           id: `Last change: ${new Date().toLocaleString()}`,
-          text: task
+          text: task,
+          completed: false
         };
         setTasks(newTasks)
         setEditingIndex(null)
         setTask('')
       }
     }
+  }
+
+  const completeTask = (index: number) => {
+    console.log('task', task)
+    const newTasks = [...tasks];
+    newTasks[index].completed = !newTasks[index].completed
+    setTasks(newTasks)
   }
 
   const cancelEdit = () => {
@@ -116,18 +136,28 @@ export const TaskProvider: React.FC<TaskProviderProps> = ({ children }) => {
     setDraggedIndex(null)
   }
 
+  const handleCreateTaskSuggestedByAI = () => {
+    const match1 = aiSuggestion && aiSuggestion.match(/"([^"]+)"/)
+    const match2 = aiSuggestion && aiSuggestion.match(/\*\*"([^"]+)"\*\*/);
+    const suggestion = (match1 && match1[1]) ? match1[1] : (match2 && match2[1]) ? match2[1] : aiSuggestion
+    
+    const newTask = {
+      id: new Date().toLocaleString(),
+      text: suggestion || '',
+      completed: false
+    }
+
+    setTasks([...tasks, newTask])
+    setIsAISuggestionDialogOpen(false)
+  }
+
   const generateTaskByAI = async () => {
     try {
       setIsAILoading(true)
       const prevTasks = tasks.map(t => t.text).reduce((acc, cur) => `${acc}, ` + cur)
       const aiSuggestions = await getAiTaskSuggestions(prevTasks)
-      aiSuggestions.forEach(s => {
-        const taskGenerateByAI = {
-          id: new Date().toLocaleString(),
-          text: s.message.content || ''
-        }
-        setTasks([...tasks, taskGenerateByAI])
-      })
+      aiSuggestions.forEach(s =>setAISuggestion(s.message.content))
+      setIsAISuggestionDialogOpen(true)
     } catch (error) {
       throw new Error(`API Error: ${error}`);
     } finally {
@@ -140,17 +170,21 @@ export const TaskProvider: React.FC<TaskProviderProps> = ({ children }) => {
     tasks,
     editingIndex,
     draggedIndex,
+    aiSuggestion,
     isAILoading,
+    isAISuggestionDialogOpen,
     addTask,
     setTask,
     removeTask,
+    completeTask,
     editTask,
     cancelEdit,
     saveEdit,
     handleDragTaskStart,
     handleDragTaskOver,
+    handleCreateTaskSuggestedByAI,
     handleDragTaskEnd,
-    generateTaskByAI
+    generateTaskByAI,
   }
 
   return (

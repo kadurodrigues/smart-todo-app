@@ -33,7 +33,6 @@ const TaskForm = () => {
                 Add Task
               </Button>
               {tasks.length >= 1 && <Button
-
                 className='bg-green-600 cursor-pointer'
                 onClick={generateTaskByAI}
               >
