@@ -20,12 +20,13 @@ const TaskList = () => {
   const {
     tasks,
     draggedIndex,
-    removeTask,
-    editTask,
-    completeTask,
-    handleDragTaskStart,
-    handleDragTaskOver,
-    handleDragTaskEnd
+    editingTaskId,
+    deleteTask,
+    setEditingTaskId,
+    toggleTask,
+    onDragTaskStart,
+    onDragTaskEnd,
+    onDragTaskOver
   } = useTask()
 
   return (
@@ -35,9 +36,9 @@ const TaskList = () => {
           <div
             className={`rounded-md shadow-lg shadow-slate-200 p-8 transition-transform ${draggedIndex === index ? 'opacity-50' : ''} ${task.completed ? 'bg-slate-50' : 'bg-white'}`}
             draggable="true"
-            onDragStart={() => handleDragTaskStart(index)}
-            onDragOver={(e) => handleDragTaskOver(e, index)}
-            onDragEnd={handleDragTaskEnd}
+            onDragStart={() => onDragTaskStart(index)}
+            onDragOver={(e) => onDragTaskOver(e, index)}
+            onDragEnd={onDragTaskEnd}
           >
             <div className='flex items-center space-x-5'>
               <GripVerticalIcon className='text-slate-400 cursor-grab shrink-0' />
@@ -49,29 +50,29 @@ const TaskList = () => {
                   <span className={`text-sm text-slate-500 ${task.completed ? 'line-through' : ''}`}>{task.id}</span>
                 </div>
                 <DropdownMenu>
-                  <DropdownMenuTrigger>
-                    <div className='flex items-center justify-center w-10 h-10 rounded-full hover:bg-slate-100 cursor-pointer'>
-                      <SettingsIcon className='h-5' />                      
+                  <DropdownMenuTrigger disabled={editingTaskId !== null} className='group'>
+                    <div className='flex items-center justify-center w-10 h-10 rounded-full group-enabled:hover:bg-slate-100 group-enabled:cursor-pointer'>
+                      <SettingsIcon className={`h-5 ${editingTaskId !== null && 'text-slate-300'}`} />                      
                     </div>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent>
                   <DropdownMenuLabel
                       className='flex items-center gap-x-1 rounded hover:bg-slate-100 cursor-pointer'
-                      onClick={() => completeTask(index)}
+                      onClick={() => toggleTask(task.id)}
                     >
                       { task.completed ? <Undo2Icon className='h-4' /> : <CheckIcon className='h-4' /> }
                       { task.completed ? 'Undone' : 'Done' }
                     </DropdownMenuLabel>
                     <DropdownMenuLabel
                       className='flex items-center gap-x-1 rounded hover:bg-slate-100 cursor-pointer'
-                      onClick={() => editTask(index)}
+                      onClick={() => setEditingTaskId(task.id)}
                     >
                       <EditIcon className='h-4' />
                       Edit
                     </DropdownMenuLabel>
                     <DropdownMenuLabel
                       className='flex items-center gap-x-1 rounded hover:text-red-700 hover:bg-red-100 cursor-pointer'
-                      onClick={() => removeTask(task.id)}
+                      onClick={() => deleteTask(task.id)}
                     >
                       <TrashIcon className='h-4' />
                       Delete

@@ -1,194 +1,88 @@
-import React, { createContext, useState, useContext, ReactNode } from "react"
-import { getAiTaskSuggestions } from '@/services/aiService'
-
-interface Task {
-  id: string;
-  text: string;
-  completed: boolean;
-}
+import React, { createContext, useContext, ReactNode } from "react"
+import { useTasksLogic } from '@/hooks/useTasksLogic'
+import { useTasksOrdering } from "@/hooks/useTasksOrdering";
+import { Task } from "@/types/Task"
+import { useAITasksSuggestion } from "@/hooks/useAITasksSuggestion";
 
 interface TaskContextType {
-  task: string;
   tasks: Task[];
-  editingIndex: number | null;
+  editingTaskId: string | null;
   draggedIndex: number | null;
   aiSuggestion: string | null;
   isAILoading: boolean;
   isAISuggestionDialogOpen: boolean;
-  addTask: () => void;
-  setTask: (value: string) => void;
-  removeTask: (id: string) => void;
-  editTask: (index: number) => void;
-  completeTask: (index: number) => void;
+  addTask: (text: string) => void;
+  deleteTask: (id: string) => void;
+  setTasks: (tasks: Task[]) => void;
+  setEditingTaskId: (id: string | null) => void;
+  setIsAISuggestionDialogOpen: (value: boolean) => void;
+  saveEdit: (id: string, text: string) => void;
+  toggleTask: (index: string) => void;
   cancelEdit: () => void;
-  handleDragTaskStart: (index: number) => void;
-  handleDragTaskOver: ($event: React.DragEvent, index: number) => void;
-  handleDragTaskEnd: () => void;
+  onDragTaskStart: (index: number) => void;
+  onDragTaskOver: ($event: React.DragEvent, index: number) => void;
+  onDragTaskEnd: () => void;
   handleCreateTaskSuggestedByAI: () => void;
-  saveEdit: () => void;
-  generateTaskByAI: () => void;
+  handleGenerateTaskByAI: () => void;
 } 
 
-const TaskContext = createContext<TaskContextType>({
-  task: '',
-  tasks: [],
-  editingIndex: null,
-  draggedIndex: null,
-  isAILoading: false,
-  aiSuggestion: '',
-  isAISuggestionDialogOpen: false,
-  addTask: () => {},
-  setTask: () => {},
-  editTask: () => {},
-  completeTask: () => {},
-  saveEdit: () => {},
-  cancelEdit: () => {},
-  removeTask: () => {},
-  handleDragTaskStart: () => {},
-  handleDragTaskOver: () => {},
-  handleDragTaskEnd: () => {},
-  generateTaskByAI: () => {},
-  handleCreateTaskSuggestedByAI: () => {},
-} as TaskContextType );
+const TaskContext = createContext<TaskContextType | undefined>(undefined);
 
 interface TaskProviderProps {
   children: ReactNode;
 }
 
 export const TaskProvider: React.FC<TaskProviderProps> = ({ children }) => {
-  const [task, setTask] = useState('')
-  const [tasks, setTasks] = useState<Task[]>([])
-  const [aiSuggestion, setAISuggestion] = useState<string | null>('')
-  const [editingIndex, setEditingIndex] = useState<number | null>(null)
-  const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
-  const [isAILoading, setIsAILoading] = useState(false)
-  const [isAISuggestionDialogOpen, setIsAISuggestionDialogOpen] = useState(false)
-
-  const addTask = () => {
-    if (task.trim()) {
-      const newTask = {
-        id: new Date().toLocaleString(),
-        text: task,
-        completed: false
-      }
-      setTasks([...tasks, newTask])
-      setTask('')
-    }
-  }
-
-  const editTask = (index: number) => {
-    setEditingIndex(index)
-    setTask(tasks[index].text)
-  }
-
-  const removeTask = (id: string) => {
-    setTasks(tasks.filter(task => task.id !== id))
-  }
-
-  const saveEdit = () => {
-    if (task.trim()) {
-      const newTasks = [...tasks];
-      if (editingIndex !== null) {
-        newTasks[editingIndex] = {
-          id: `Last change: ${new Date().toLocaleString()}`,
-          text: task,
-          completed: false
-        };
-        setTasks(newTasks)
-        setEditingIndex(null)
-        setTask('')
-      }
-    }
-  }
-
-  const completeTask = (index: number) => {
-    console.log('task', task)
-    const newTasks = [...tasks];
-    newTasks[index].completed = !newTasks[index].completed
-    setTasks(newTasks)
-  }
-
-  const cancelEdit = () => {
-    setTask('')
-    setEditingIndex(null)
-  }
-
-  const handleDragTaskStart = (index: number) => {
-    setDraggedIndex(index);
-  }
-
-  const handleDragTaskOver = ($event: React.DragEvent, index: number) => {
-    $event.preventDefault();
-
-    if (draggedIndex === null) return;
-
-    if (draggedIndex !== index) {
-      const newTasks = [...tasks];
-      const draggedTask = newTasks[draggedIndex];
-      newTasks.splice(draggedIndex, 1);
-      newTasks.splice(index, 0, draggedTask);
-      setTasks(newTasks);
-      setDraggedIndex(index);
-    }
-  }
-
-  const handleDragTaskEnd = () => {
-    setDraggedIndex(null)
-  }
-
-  const handleCreateTaskSuggestedByAI = () => {
-    const match1 = aiSuggestion && aiSuggestion.match(/"([^"]+)"/)
-    const match2 = aiSuggestion && aiSuggestion.match(/\*\*"([^"]+)"\*\*/);
-    const suggestion = (match1 && match1[1]) ? match1[1] : (match2 && match2[1]) ? match2[1] : aiSuggestion
-    
-    const newTask = {
-      id: new Date().toLocaleString(),
-      text: suggestion || '',
-      completed: false
-    }
-
-    setTasks([...tasks, newTask])
-    setIsAISuggestionDialogOpen(false)
-  }
-
-  const generateTaskByAI = async () => {
-    try {
-      setIsAILoading(true)
-      const prevTasks = tasks.map(t => t.text).reduce((acc, cur) => `${acc}, ` + cur)
-      const aiSuggestions = await getAiTaskSuggestions(prevTasks)
-      aiSuggestions.forEach(s =>setAISuggestion(s.message.content))
-      setIsAISuggestionDialogOpen(true)
-    } catch (error) {
-      throw new Error(`API Error: ${error}`);
-    } finally {
-      setIsAILoading(false)
-    }
-  }
-
-  const value = {
-    task,
+  const {
     tasks,
-    editingIndex,
+    editingTaskId,
+    addTask,
+    deleteTask,
+    saveEdit,
+    setTasks,
+    setEditingTaskId,
+    cancelEdit,
+    toggleTask
+  } = useTasksLogic()
+
+  const {
     draggedIndex,
+    onDragTaskStart,
+    onDragTaskOver,
+    onDragTaskEnd
+  } = useTasksOrdering(tasks, setTasks)
+
+  const {
     aiSuggestion,
     isAILoading,
     isAISuggestionDialogOpen,
-    addTask,
-    setTask,
-    removeTask,
-    completeTask,
-    editTask,
-    cancelEdit,
-    saveEdit,
-    handleDragTaskStart,
-    handleDragTaskOver,
+    setIsAISuggestionDialogOpen,
     handleCreateTaskSuggestedByAI,
-    handleDragTaskEnd,
-    generateTaskByAI,
-  }
+    handleGenerateTaskByAI
+  } = useAITasksSuggestion(tasks, setTasks)
 
   return (
-    <TaskContext.Provider value={value}>
+    <TaskContext.Provider value={{
+      tasks,
+      editingTaskId,
+      draggedIndex,
+      aiSuggestion,
+      isAILoading,
+      isAISuggestionDialogOpen,
+      addTask,
+      deleteTask,
+      toggleTask,
+      setTasks,
+      setEditingTaskId,
+      setIsAISuggestionDialogOpen,
+      cancelEdit,
+      saveEdit,
+      onDragTaskStart,
+      onDragTaskOver,
+      onDragTaskEnd,
+      handleCreateTaskSuggestedByAI,
+      handleGenerateTaskByAI,
+    }}>
       { children }
     </TaskContext.Provider>
   )
