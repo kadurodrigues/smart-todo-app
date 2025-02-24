@@ -1,50 +1,58 @@
-# React + TypeScript + Vite
+# Smart Todo App
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A sleek, interactive to-do list application built with **React** and **TypeScript**. Designed to help you manage tasks efficiently, this app combines a clean UI with powerful features like adding, editing, toggling, deleting, and reordering tasks via drag-and-drop. It also includes an innovative AI feature to auto-generate tasks based on existing ones, making it a smart tool for productivity. This project serves as a personal journey to refresh React skills after working with Vue.js, showcasing modern development practices with custom hooks and the Context API.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Add Tasks**: Create new todos with a simple input form.
+- **Edit Tasks**: Update existing tasks seamlessly with a dedicated "Save Changes" button.
+- **Toggle Completion**: Mark tasks as done with a checkbox.
+- **Delete Tasks**: Remove tasks you no longer need.
+- **Drag-and-Drop Reordering**: Rearrange your list effortlessly by dragging tasks.
+- **AI-Generated Tasks**: After creating your first task, unlock a "Generate by AI" button to suggest the next task based on previous ones—see the screenshot for a visual example!
+- **Type Safety**: Leverages TypeScript for robust, error-free code.
+- **Modular Design**: Uses custom hooks (`useTasksLogic`, `useTasksOrdering`) and Context API for state management.
 
-## Expanding the ESLint configuration
+## Demo
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+<!-- Add a live demo link if you deploy it, e.g., via Netlify or Vercel -->
+*Coming soon!* A live demo is in the works—stay tuned!
 
-- Configure the top-level `parserOptions` property like this:
+## Installation
 
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+Get the app running locally in just a few steps:
+
+### Prerequisites
+- [Node.js](https://nodejs.org/) (v16 or higher recommended)
+- [Git](https://git-scm.com/)
+
+### Steps
+**1. Clone the Repository**
+```bash
+git clone git@github.com:kadurodrigues/smart-todo-app.git
+cd smart-todo-app
 ```
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
-
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
-
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
+**2. Install Dependencies**
+```bash
+npm install
 ```
+
+**3. Start the App**
+```bash
+npm run dev
+```
+
+## Usage
+- Add a Task: Type in the input field and click "Add."
+- Edit a Task: Click "Edit" on a task, modify the text, and click "Save Changes."
+- Reorder Tasks: Drag a task by clicking and holding, then drop it in a new spot.
+- Complete or Delete: Check the box to mark a task as done, or click "Delete" to remove.
+- Generate by AI: After adding your first task, use the "Generate by AI" button to create a suggested next task based on existing ones (see the screenshot above).
+
+## Contribution
+
+Feel free to fork this repo and submit pull requests! Suggestions, bug reports, or feature ideas are welcome via issues.
+
+## About
+Built by [me](https://github.com/kadurodrigues) as a fun way to dive back into React after working with Vue.js. Inspired by simplicity, functionality, and a love for clean code.
