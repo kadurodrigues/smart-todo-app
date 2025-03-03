@@ -1,11 +1,11 @@
-import { useTask } from '../context/TaskContext'
+import { useTask } from '../context/TaskContext';
 
 import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuLabel
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu";
 
 import {
   GripVerticalIcon,
@@ -13,8 +13,9 @@ import {
   CheckIcon,
   EditIcon,
   TrashIcon,
-  Undo2Icon
-} from "lucide-react"
+  Undo2Icon,
+  CircleCheckIcon,
+} from "lucide-react";
 
 const TaskList = () => {
   const {
@@ -27,7 +28,7 @@ const TaskList = () => {
     onDragTaskStart,
     onDragTaskEnd,
     onDragTaskOver
-  } = useTask()
+  } = useTask();
 
   return (
     <ul className='w-3/12 mt-3 space-y-3'>
@@ -44,10 +45,15 @@ const TaskList = () => {
               <GripVerticalIcon className='text-slate-400 cursor-grab shrink-0' />
               <div className='flex flex-grow justify-between'>
                 <div>
-                  <p className={`${task.completed ? 'line-through' : ''}`}>
-                    {task.text}
-                  </p>
-                  <span className={`text-sm text-slate-500 ${task.completed ? 'line-through' : ''}`}>{task.id}</span>
+                  <div className='flex items-center space-x-2'>
+                    <p className={`${task.completed ? 'line-through' : ''}`}>
+                      {task.text}
+                    </p>
+                    { task.completed && <CircleCheckIcon className='h-5 text-green-700' /> }
+                  </div>
+                  <span className={`text-sm text-slate-500 ${task.completed ? 'line-through' : ''}`}>
+                    { task.updatedAt ? `Updated at ${task.updatedAt}` :  `Created at ${task.createdAt}` }
+                  </span>
                 </div>
                 <DropdownMenu>
                   <DropdownMenuTrigger disabled={editingTaskId !== null} className='group'>

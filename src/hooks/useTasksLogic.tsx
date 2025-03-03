@@ -1,40 +1,62 @@
-import { useState, useCallback } from "react";
-import { Task } from "@/types/Task"
+import { useState, useCallback, useEffect } from "react";
+import { Task } from "@/types/Task";
+import formatDate from "@/utils/formatDate";
+import TaskService from "@/services/taskService";
 
 export const useTasksLogic = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
 
-  const addTask = useCallback((text: string) => {
-    const newTask = {
-      id: new Date().toLocaleString(),
-      text,
-      completed: false
-    };
-    setTasks((prev) => [...prev, newTask]);
+  useEffect(() => {
+    fetchTasks();
   }, []);
 
-  const toggleTask = useCallback((id: string) => {
-    setTasks((prev) =>
-      prev.map((task) =>
-        task.id === id ? { ...task, completed: !task.completed } : task
-      )
-    );
+  useEffect(() => {
+    console.log("Tasks state updated:", tasks);
+  }, [tasks]);
+
+  const fetchTasks = async () => {
+    try {
+      const data = await TaskService.getTasks();
+      setTasks(() => data.map(t => ({ 
+        ...t,
+        createdAt: t.createdAt ? formatDate(t.createdAt) : '',
+        updatedAt: t.updatedAt ? formatDate(t.updatedAt) : ''
+      })));
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const addTask = useCallback(async (text: string) => {
+    try {
+      await TaskService.addTask(text);
+      fetchTasks();
+    } catch (error) {
+      console.error(error);
+    }
   }, []);
+
+  const toggleTask = async (id: string) => {
+    const task = tasks.find((task) => task.id === id);
+    if (task?.id) {
+      await TaskService.toggleTask(id, task.completed);
+      fetchTasks();
+    }
+  };
 
   const deleteTask = useCallback((id: string) => {
     setTasks((prev) => prev.filter((task) => task.id !== id));
   }, []);
 
-  const saveEdit = useCallback((id: string, text: string) => {
-    setTasks((prev) =>
-      prev.map((task) => 
-        task.id === id 
-          ? { ...task, id: `Last change: ${new Date().toLocaleString()}`, text }
-          : task
-      )
-    );
-    setEditingTaskId(null);
+  const saveEdit = useCallback(async (id: string, text: string) => {
+    try {
+      await TaskService.updateTask(id, text);
+      fetchTasks();
+      setEditingTaskId(null);
+    } catch (error) {
+      console.error(error);
+    }
   }, [])
 
   const cancelEdit = useCallback(() => {
